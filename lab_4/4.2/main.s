@@ -16,8 +16,8 @@ leds: .byte 0
 .equ GPIOB_ODR, 0x48000414
 .equ GPIOC_MODER, 0x48000800
 
-.equ X, 800
-.equ Y, 800
+.equ X, 400
+.equ Y, 400
 .equ MASK, 0x3C0 // 00...001111000000
 .equ INITIAL_STATE, 0xFFFFFF9F
 .equ TURN_ON_PB3456 , 0xFFFFC030
@@ -133,13 +133,27 @@ Delay:
 	movs	r7,	lr
 	ldr		r3, =X
 L1:	ldr		r4, =Y
+
+
+L2:
+/*
+	ldr		r10, =GPIOC_IDR
+	ldr		r11, [r10]
+	movs	r12, #1
+	lsl		r12, #13
+	ands	r11, r12
+	beq		NOT_CHECK
+*/
 	bl CHECK_BOTTON
-L2:	subs	r4, #1
+NOT_CHECK:
+
+	subs	r4, #1
 	bne		L2
 	subs	r3, #1
 	bne		L1
 	movs	lr, r7
 	bx		LR
+
 
 
 
@@ -154,51 +168,33 @@ CHECK_BOTTON:
 	cmp		r8, r9
 	beq		STOP_turn_led
 	b 		CHECK_BOTTON
-
 set_counter_to_zero:
 	mov		r8, #0
-	b return_check_botton
+	bx lr
 STOP_turn_led:
-	mov		r8, #0
-leave_botton:
 	ldr		r10, =GPIOC_IDR
 	ldr		r11, [r10]
 	movs	r12, #1
 	lsl		r12, #13
 	ands	r11, r12
 	beq		STOP_turn_led
-	add		r8, #1
-	cmp		r8, r9
-	bne		leave_botton
-in_stop_state_set_counter_to_zero:
-	mov		r8, #0
-stop_state_looping:
-	ldr		r11, [r10]
-	movs	r12, #1
-	lsl		r12, #13
-	ands	r11, r12
-	bne		in_stop_state_set_counter_to_zero // user not push botton, go to STOP_turn_led to set counter to zero
-	add		r8, #1
-	cmp		r8, r9
-	bne		stop_state_looping
-set_botton_0:
-	mov		r8, #0
-leave_botton_2:
 
 
+set_to_zero_before_inner_debounce:
+	//user leave botton, set counter to zero
+	mov		r8, #0
+inner_debounce:
 	ldr		r10, =GPIOC_IDR
 	ldr		r11, [r10]
 	movs	r12, #1
 	lsl		r12, #13
 	ands	r11, r12
-	beq		set_botton_0
+	bne		set_to_zero_before_inner_debounce
 	add		r8, #1
 	cmp		r8, r9
-	bne		leave_botton_2
-
-continuing_turning_led:
-	mov		r8, #0
+	bne		inner_debounce
 return_check_botton:
+	//mov		r8, #0 bug is feature
 	bx lr
 
 

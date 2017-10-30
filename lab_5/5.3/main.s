@@ -48,7 +48,7 @@ main:
 	mov r1, #0x0 //all LED shoud turned on, i.e seg0 to seg7
 	BL MAX7219Send
 	//----------shitty copy and paste end-----------
-	BL CHECK_BUTTON
+	BL CHECK_BUTTON_reset_r8
 	mov r2, #1
 	mov r3, #1
 
@@ -67,8 +67,8 @@ zero:
 	sub r1, #1
 	BL MAX7219Send
 	//----------shitty copy and paste end-----------
-	BL CHECK_BUTTON
 	pop {r2, r3, r4}
+	BL CHECK_BUTTON_reset_r8
 	add r5, r2, r3
 	mov r2, r3
 	mov r3, r5
@@ -90,8 +90,10 @@ overflow:
 	BL MAX7219Send
 	//----------shitty copy and paste end-----------
 over_flow_busy_loop:
-	BL CHECK_BUTTON
-	b over_flow_busy_loop
+	BL CHECK_BUTTON_reset_r8
+	cmp		r2, #1
+	beq		fib
+	b		over_flow_busy_loop
 not_overflow:
 	udiv r1, r5, r0
 	mul r1, r1, r0
@@ -127,23 +129,7 @@ GPIO_init:
 
 	BX LR
 
-Display0toF:
-	//TODO: Display 0 to F at first digit on 7-SEG LED. Display one per second.
-	push {lr}
-Display0toF_LOOP:
-	ldr r0, =arr
-	ldrb r1, [r0,r10]
-	ldr r0, =DIGIT_0
-	BL MAX7219Send
-	BL delay
 
-	add r10, #1
-	cmp r10, #16
-	bne Display0toF_LOOP
-
-	pop {pc}
-
-	BX LR
 
 MAX7219Send:
    //input parameter: r0 is ADDRESS , r1 is DATA
@@ -206,18 +192,8 @@ max7219_init:
 	pop {pc}
 	BX LR
 
-delay:
-	//TODO: Write a delay 1sec function
-		ldr		r3, =X
-	L1:	ldr		r4, =Y
-	L2:	subs	r4, #1
-		bne		L2
-		subs	r3, #1
-		bne		L1
-		bx		LR
-	BX LR
-
-
+CHECK_BUTTON_reset_r8:
+	mov		r8, #0
 CHECK_BUTTON:
 	ldr		r10, =GPIOC_IDR
 	ldr		r11, [r10]
@@ -232,19 +208,28 @@ set_counter_to_zero:
 	cmp		r8, r9
 	blt		counter_less_than_long_pressed
 counter_greater_than_long_pressed:
-	mov		r8, #0
-
-	b counter_greater_than_long_pressed
+	mov		r1,	#0
+	mov		r0, #1
+	push	{lr}
+	bl		MAX7219Send
+	ldr 	r0, =SCAN_LIMIT
+	mov 	r1, #0x0 //all LED shoud turned on, i.e seg0 to seg7
+	BL MAX7219Send
+	pop		{lr}
+	mov		r2, #1
+	mov		r3, #1
+	push	{lr}
+	bl		CHECK_BUTTON_reset_r8
+	pop		{lr}
+	bx		lr
 counter_less_than_long_pressed:
 	ldr		r9, =0xFFF
 	cmp		r8, r9
 	blt		counter_less_than_debounced
 cal_next_fin_numbders:
-	mov		r8, #0
 	bx		lr
 counter_less_than_debounced:
-	mov		r8, #0
-	b		CHECK_BUTTON
+	b		CHECK_BUTTON_reset_r8
 
 set_limit:
 	ldr r0, =SCAN_LIMIT

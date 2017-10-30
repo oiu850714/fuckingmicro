@@ -15,8 +15,8 @@ leds: .byte 0
 .equ GPIOB_PUPDR, 0x4800040C
 .equ GPIOB_ODR, 0x48000414
 
-.equ X, 800
-.equ Y, 800
+.equ X, 1200
+.equ Y, 1200
 .equ MASK, 0x3C0 // 00...001111000000
 .equ INITIAL_STATE, 0xFFFFFF9F
 .equ TURN_ON_PB3456 , 0xFFFFC030

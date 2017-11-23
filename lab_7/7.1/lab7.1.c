@@ -17,11 +17,12 @@ int user_press_button()
 void SystemClock_Config(int frequency_option){
 
 	//RCC->CFGR |= RCC_CFGR_SW_MSI;
-	RCC->CFGR |= RCC_CFGR_SWS_MSI;
+	RCC->CFGR &= (~RCC_CFGR_SW);
+	RCC->CFGR |= RCC_CFGR_SW_MSI;
 
-	RCC->PLLCFGR &= ~RCC_PLLCFGR_PLLREN;
-	RCC->PLLCFGR &= ~RCC_PLLCFGR_PLLQEN;
-	RCC->PLLCFGR &= ~RCC_PLLCFGR_PLLPEN;
+	//RCC->PLLCFGR &= ~RCC_PLLCFGR_PLLREN;
+	//RCC->PLLCFGR &= ~RCC_PLLCFGR_PLLQEN;
+	//RCC->PLLCFGR &= ~RCC_PLLCFGR_PLLPEN;
 
 	//step 1
 	RCC->CR &= (~RCC_CR_PLLON);
@@ -87,7 +88,8 @@ void SystemClock_Config(int frequency_option){
 
 	//last fuck
 	//RCC->CFGR |= RCC_CFGR_SW_PLL;
-	RCC->CFGR |= RCC_CFGR_SWS_PLL;
+	RCC->CFGR &= (~RCC_CFGR_SW);
+	RCC->CFGR |= RCC_CFGR_SW_PLL;
 
     //TODO: Change the SYSCLK source and set the corresponding Prescaler value.
 }
@@ -99,21 +101,20 @@ int main(){
 	GPIO_init();
 	int frequency_option = 1;
 	while(1){
-		/*if (user_press_button())
+		if (user_press_button())
 		{
-			//Change_frequency(frequency_option++ % 5);
 			SystemClock_Config(frequency_option++ % 5);
 			//TODO: Update system clock rate
-		}*/
+		}
 
 		GPIOA->BSRR = (1<<5);
 		delay_1s ();
 		GPIOA->BRR = (1<<5);
 		delay_1s ();
 
-		frequency_option++;
+		/*frequency_option++;
 		if(frequency_option == 10)
-			SystemClock_Config(3);
+			SystemClock_Config(3);*/
 
 	}
 }

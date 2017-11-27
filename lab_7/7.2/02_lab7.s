@@ -121,7 +121,7 @@ max7219_init:
 	push {r0, r1, r2, r3, r4, r5, r6, r7, r8, r9, r10, r11, lr}
 
 	ldr r0, =DECODE_MODE
-	ldr r1, =#0x7F
+	ldr r1, =#0xFF
 	BL max7219_send
 	ldr r0, =DISPLAY_TEST
 	ldr r1, =#0x0

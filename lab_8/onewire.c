@@ -11,22 +11,25 @@
 
 void ONEWIRE_INPUT(OneWire_t* OneWireStruct)
 {
-	OneWireStruct->GPIOx->MODER &= ~(0x3);
-	OneWireStruct->GPIOx->MODER |= 0x0; // turn to input mode
-	OneWireStruct->GPIOx->PUPDR &= ~(0x3);
-	OneWireStruct->GPIOx->PUPDR |= 0x1; // turn to pull-up
+	//OneWireStruct->GPIOx->MODER &= ~(0x3);
+	GPIOB->MODER   &= 0b11111111111111001111111111111111;
+	//OneWireStruct->GPIOx->MODER |= 0x0; // turn to input mode
+	//OneWireStruct->GPIOx->PUPDR &= ~(0x3);
+	//OneWireStruct->GPIOx->PUPDR |= 0x1; // turn to pull-up
 }
 
 void ONEWIRE_OUTPUT(OneWire_t* OneWireStruct)
 {
-	OneWireStruct->GPIOx->MODER &= ~(0x3);
-	OneWireStruct->GPIOx->MODER |= 0x1; // PA0 set to output mode
+	//OneWireStruct->GPIOx->ODR &= ~(0x1);
+	//OneWireStruct->GPIOx->MODER &= ~(0x3);
+	//OneWireStruct->GPIOx->MODER |= 0x1; // PA0 set to output mode
+	GPIOB->MODER   = 0b00000000000000010000000000000000;
 	//OneWireStruct->GPIOx->ODR |= 0x1; // negedge!!!!!!!
-	OneWireStruct->GPIOx->ODR &= ~(0x1);
 	//OneWireStruct->GPIOx->ODR |= 0x0; // GPIOx will be GPIOA, reset pin 0
 }
 
-void delay_use_SysTick(int usec)
+/*
+void delay_us(int usec)
 {
 	SysTick->VAL = 8000000;
 	while(1)
@@ -35,9 +38,11 @@ void delay_use_SysTick(int usec)
 			return;
 	}
 }
+*/
 
 void OneWire_Init(OneWire_t* OneWireStruct) { //, GPIO_TypeDef* GPIOx, uint32_t GPIO_Pin) {
 	// TODO
+	ONEWIRE_INPUT(OneWireStruct);
 	ONEWIRE_OUTPUT(OneWireStruct);
 	OneWire_Reset(OneWireStruct);
 }
@@ -52,21 +57,23 @@ void OneWire_Init(OneWire_t* OneWireStruct) { //, GPIO_TypeDef* GPIOx, uint32_t 
  */
 uint8_t OneWire_Reset(OneWire_t* OneWireStruct) {
 	// TODO
-	delay_use_SysTick(480);
+	delay_us(480);
 	ONEWIRE_INPUT(OneWireStruct);
-	delay_use_SysTick(70);
-	if(!((OneWireStruct->GPIOx->IDR) & 0x1)) // if true, onewire set successful
+	delay_us(70);
+
+	delay_us(410);
+	/*if(!((OneWireStruct->GPIOx->IDR) & 0x1)) // if true, onewire set successful
 	{
-		delay_use_SysTick(410);
+		delay_us(410);
 		//display(1);
 		return 1;
 	}
 	else
 	{
-		delay_use_SysTick(410);
+		delay_us(410);
 		//display(0);
 		return 0;
-	}
+	}*/
 }
 
 /* Write 1 bit through OneWireStruct
@@ -78,19 +85,23 @@ uint8_t OneWire_Reset(OneWire_t* OneWireStruct) {
 void OneWire_WriteBit(OneWire_t* OneWireStruct, uint8_t bit) {
 	// TODO
 
+	ONEWIRE_INPUT(OneWireStruct);
 	if(bit == 0)
 	{
 		ONEWIRE_OUTPUT(OneWireStruct);
-		delay_use_SysTick(60);
+		delay_us(65);
 		ONEWIRE_INPUT(OneWireStruct);
+		delay_us(5);
+		//display(OneWireStruct->GPIOx->IDR & 0x1);
 	}
 	else
 	{
 		ONEWIRE_OUTPUT(OneWireStruct);
-		delay_use_SysTick(10);
+		delay_us(10);
 		ONEWIRE_INPUT(OneWireStruct);
-		delay_use_SysTick(50);
+		delay_us(60);
 	}
+	ONEWIRE_INPUT(OneWireStruct);
 }
 
 /* Read 1 bit through OneWireStruct
@@ -101,11 +112,12 @@ void OneWire_WriteBit(OneWire_t* OneWireStruct, uint8_t bit) {
 uint8_t OneWire_ReadBit(OneWire_t* OneWireStruct) {
 	// TODO
 	ONEWIRE_OUTPUT(OneWireStruct);
-	delay_use_SysTick(2);
+	delay_us(3);
 	ONEWIRE_INPUT(OneWireStruct);
-	delay_use_SysTick(10);
-	uint8_t readBit = OneWireStruct->GPIOx->IDR & 0x1;
-	delay_use_SysTick(50);
+	//delay_us(3);
+	//above is the most fucking shit I've ever seen in my life
+	uint8_t readBit = (OneWireStruct->GPIOx->IDR & (0x1 << 8)) >> 8;
+	delay_us(50);
 	return readBit;
 }
 
@@ -120,7 +132,7 @@ void OneWire_WriteByte(OneWire_t* OneWireStruct, uint8_t byte) {
 	for(int i = 0; i < 8; i++)
 	{
 		OneWire_WriteBit(OneWireStruct, byte & 0x1);
-		delay_use_SysTick(2);
+		delay_us(2);
 		byte >>= 1;
 	}
 }
@@ -136,7 +148,7 @@ uint8_t OneWire_ReadByte(OneWire_t* OneWireStruct) {
 	for(int i = 0; i < 8; i++)
 	{
 		readByte += (OneWire_ReadBit(OneWireStruct) << i);
-		delay_use_SysTick(1);
+		delay_us(1);
 	}
 	return readByte;
 }

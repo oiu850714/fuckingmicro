@@ -11,6 +11,7 @@
 	.equ RCC_AHB2ENR, 0x4002104C
 	.equ GPIOA_BASE, 0x48000000
 	.equ GPIOA_MODER, 0x48000000
+	.equ GPIOC_MODER, 0x48000800
 	.equ GPIOA_OTYPER, 0x48000004
 	.equ GPIOA_OSPEEDER, 0x48000008
 	.equ GPIOA_PUPDR, 0x4800000C
@@ -18,6 +19,9 @@
 	.equ GPIOA_ODR, 0x48000014
 	.equ GPIO_BSRR_OFFSET, 0x18
 	.equ GPIO_BRR_OFFSET, 0x28
+
+	.equ GPIOB_MODER, 0x48000400
+	.equ GPIOB_PUPDR, 0x4800040C
 
 	.equ DIGIT_0, 0x01
 	.equ DECODE_MODE, 0x09
@@ -39,14 +43,28 @@ GPIO_init:
 	/* no parameters */
 
 
-	//TODO: Initialize three GPIO pins as output for max7219 DIN, CS and CLK
-	movs r4, #0x1
+	//TODO: Initialize three GPIO pins as output for max7219 DIN, CS and CLK, and fucking PA0(dswww)
+	// and user botton PC13
+	movs r4, #0x7
 	ldr r5, =RCC_AHB2ENR
 	str r4, [r5]
 
 	ldr r5, =GPIOA_MODER
-	ldr r6, =#0xABFF5400
+	ldr r6, =#0xABFF5401
 	str r6, [r5]
+
+	ldr r5, =GPIOC_MODER
+	ldr r6, =#0xF3FFFFFF
+	str r6, [r5]
+
+	/*ldr r5, =GPIOB_MODER
+	ldr r6, =#0x1
+	str r6, [r5]
+
+
+	ldr r5, =GPIOB_PUPDR
+	ldr r6, =#0x1
+	str r6, [r5]*/
 
 	pop {r4, r5, r6, r7, r8, r9, r10, r11, lr}
 

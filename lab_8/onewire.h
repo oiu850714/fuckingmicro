@@ -9,7 +9,7 @@ typedef struct {
 } OneWire_t;
 
 
-void delay_use_SysTick(int usec);
+//void delay_use_SysTick(int usec);
 void OneWire_Init(OneWire_t* OneWireStruct); //GPIO_TypeDef* GPIOx, uint32_t GPIO_Pin);
 void OneWire_SkipROM(OneWire_t* OneWireStruct);
 uint8_t OneWire_Reset(OneWire_t* OneWireStruct);

@@ -1,5 +1,5 @@
 #include "ds18b20.h"
-#include "gpio.h"
+//#include "gpio.h"
 #include "onewire.h"
 #include "ref.h"
 //#include "stm32l476xx.h"
@@ -16,7 +16,7 @@ extern void GPIO_init();
 #define SHUTDOWN_CMD 0x0C
 
 
-OneWire_t OneWire = {GPIOA, 0};
+OneWire_t OneWire = {GPIOB, 0};
 
 void display(int n)
 {
@@ -55,6 +55,7 @@ void display(int n)
 
 }
 
+
 void SystemClock_Config(){
 	SysTick->CTRL |= 0x7; //3'b111
 	SysTick->LOAD = 8000000;
@@ -67,21 +68,47 @@ void SysTick_Handler(void) {
 	OneWire_SkipROM(&OneWire);
 	DS18B20_ConvT(&OneWire, 12);
 	short temperature;
+	OneWire_Init(&OneWire);
+	OneWire_SkipROM(&OneWire);
 	DS18B20_Read(&OneWire, &temperature);
-	//display(temperature);
+	display(temperature >> 4);
 	//check_handler++;
 }
 
+int user_press_button()
+{
+	int counter = 85000;
+	int debounce_flag = 0;
+	while(counter--)
+	{
+		debounce_flag = (GPIOC->IDR & 0x2000);
+		//fucking button is active low
+		//so when button is not pressed, IDR & 0x2000 is not zero
+	}
+	return debounce_flag != 0x2000;
+}
+
 int main(){
+	/*GPIOA->PUPDR &= ~(0x3);
+	GPIOA->PUPDR |= 0x1;
+	GPIOA->OSPEEDR &= ~(0x3);
+	GPIOA->OSPEEDR |= 0x1;*/
+
 	SystemClock_Config();
 	GPIO_init();
 	max7219_init();
-
+	GPIOB->MODER   =  0b00000000000000010000000000000000;
+	GPIOB->PUPDR   &= 0b11111111111111001111111111111111;
+	GPIOB->PUPDR   |= 0b00000000000000010000000000000000;
+	GPIOB->OSPEEDR &= 0b11111111111111001111111111111111;
+	GPIOB->OSPEEDR |= 0b00000000000000010000000000000000;
+	GPIOB->OTYPER  =  0b00000000000000000000000000000000;
 	while(1){
-		/*
+
 		if(user_press_button()) {
+			SysTick->CTRL ^= 0x1;
 		}
-		*/
+
 	}
 //TODO: Enable or disable Systick timer
 }

@@ -19,20 +19,20 @@ int DS18B20_ConvT(OneWire_t* OneWire, DS18B20_Resolution_t resolution) {
 
 	switch(resolution){
 	case 9:
-		delay_use_SysTick(93750);
+		delay_us(93750);
 		break;
 	case 10:
-		delay_use_SysTick(187500);
+		delay_us(187500);
 		break;
 	case 11:
-		delay_use_SysTick(375000);
+		delay_us(375000);
 		break;
 	case 12:
-		delay_use_SysTick(750000);
+		delay_us(750000);
 		break;
 	}
 
-
+	//display(GPIOA->IDR);
 
 	return 0;
 }
